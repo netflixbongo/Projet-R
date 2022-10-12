@@ -1,3 +1,6 @@
 # Projet-R
-PAZ GALVEZ NOUGAROU KHAMASSI
+- Fichier RShiny
+- Fichier RMarkdown
+- RMarkdown en HTML
+- Fichiers csv de la base de données 
 
