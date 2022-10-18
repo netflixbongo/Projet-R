@@ -1,0 +1,150 @@
+library(shinydashboard)  
+library(dplyr)
+library(ggplot2)
+library(DT)
+library(plotly)
+library(tidyverse)
+library(plyr)
+
+
+library(readxl)
+
+source("www/codes/body.R")
+
+shinyApp(
+  
+  ui =  dashboardPage(
+    # Title
+    dashboardHeader(title="Statistique"),
+    
+    #Sidebar
+    dashboardSidebar(
+      
+      #Menus
+      sidebarMenu(
+        menuItem("Home", icon = icon("home"), tabName = "beginning")
+      )
+    ),
+    
+    
+    dashboardBody(body, 
+                  
+                  includeCSS("www/estilos.css")
+    )
+  ),
+  server <- function(input, output, session) {
+    path_wd <- getwd()
+    setwd(path_wd)
+    my_data  <-read_excel("www/data/StockX database.xlsx", sheet = "StockX database - Ventes") #read csv file
+    # my_data <- read_excel(paste0(getwd(),"/StockX database.xlsx"), sheet = "StockX database - Ventes")
+    my_data
+    
+    # min(my_data$`Shoe Size`,na.rm= TRUE)
+    # max(my_data$`Shoe Size`,na.rm= TRUE)
+    # range(my_data$`Shoe Size`,na.rm= TRUE)
+    # mean(my_data$`Shoe Size`,na.rm= TRUE)
+    # median(my_data$`Shoe Size`,na.rm= TRUE)
+    # max(my_data$`Shoe Size`,na.rm= TRUE) - min(my_data$`Shoe Size`,na.rm= TRUE)
+    # var(my_data$`Shoe Size`,na.rm= TRUE)
+    # summary(my_data$`Shoe Size`)
+    
+    output$fd_AnalyseUnivariee <- renderPlotly({ 
+        # hist(my_data$`Shoe Size`, col = "dark green",
+        #      main = "Shoe Size",
+        #      xlab = "Size",
+        #      ylab = "Nombre")
+      relation<-my_data%>%                        
+        group_by(ShoeSize) %>%        
+        tally()
+      
+      l <- list(
+        font = list(
+          family = "Roboto,sans-serif",
+          size = 12,
+          color = "#4e4e4e"),
+        bgcolor = "#E2E2E2",
+        bordercolor = "#FFFFFF",
+        borderwidth = 2)
+      
+      t <- list(
+        family = "Roboto,sans-serif",
+        size = 12,
+        color = '#4e4e4e')
+      
+      
+      fig <- plot_ly(relation, x = ~ShoeSize,y = ~n, type = "bar",color=~ShoeSize ,
+                     beside=TRUE, text = ~ShoeSize, textposition = "auto",alpha = 0.9,
+                     textfont = list(color = '#4e4e4e', size = 14))
+      fig <- fig %>% layout(yaxis = list(title = "Total"),legend = l,font=t)
+      fig <- fig %>% layout(title  = "Shoe Size")
+      
+      fig
+      
+    })
+    
+    output$TableBrand <- DT::renderDataTable({
+      
+      data<- select(my_data,Brand)
+      
+      relation<-data%>%                        
+        group_by(Brand) %>%        
+        tally()
+      names(relation)[2]<-"Total"
+      DT::datatable(relation)
+    })
+    
+    output$TableSneakerName <- DT::renderDataTable({
+      
+      data<- select(my_data,SneakerName)
+      
+      relation<-data%>%                        
+        group_by(SneakerName) %>%        
+        tally()
+      names(relation)[2]<-"Total"
+      DT::datatable(relation)
+    })
+    
+    output$fd_SneakerName <- renderPlotly({ 
+      
+      relation<-my_data%>%                        
+        group_by(SneakerName) %>%        
+        tally()
+      
+      l <- list(
+        font = list(
+          family = "Roboto,sans-serif",
+          size = 12,
+          color = "#4e4e4e"),
+        bgcolor = "#E2E2E2",
+        bordercolor = "#FFFFFF",
+        borderwidth = 2)
+      
+      t <- list(
+        family = "Roboto,sans-serif",
+        size = 12,
+        color = '#4e4e4e')
+      
+      
+      fig <- plot_ly(relation, x = ~SneakerName,y = ~n, type = "bar",color=~SneakerName ,
+                     beside=TRUE, text = ~SneakerName, textposition = "auto",alpha = 0.9,
+                     textfont = list(color = '#4e4e4e', size = 14))
+      fig <- fig %>% layout(yaxis = list(title = "Total"),font=t)
+      fig <- fig %>% layout(title  = "Analyse bivariee")%>% layout(showlegend = FALSE)
+      
+      fig
+      
+    })
+    
+    output$TableSneakerName_Brand <- DT::renderDataTable({
+      
+      data<- select(my_data,SneakerName,Brand)
+      
+      relation<-data%>%                        
+        group_by(SneakerName,Brand) %>%        
+        tally()
+      
+      names(relation)[3]<-"Total"
+      DT::datatable(relation)
+    })
+    
+  })
